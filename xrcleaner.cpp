@@ -22,19 +22,13 @@ void clr_xchange7days(const std::string& directory_to_clean) {
          lwt - fs::file_time_type::clock::now() + ch::system_clock::now());
 									            
          if (now - sctp > seven_days) {
-	    if ( (entry.path().u8string().find("/xchange/Ибрагимов") != std::string::npos) || (entry.path().u8string().find("/xchange/Козырев") != std::string::npos)
-			  || (entry.path().u8string().find("/xchange/#recycle") != std::string::npos) || (entry.path().u8string().find("@eaDir") != std::string::npos)  ) { /* @eaDir - NAS "extended attributes directory" */ }
+	    if ( (entry.path().u8string().find("/xchange/ibragimov") != std::string::npos) || 
+			    (entry.path().u8string().find("/xchange/00_students") != std::string::npos) ||
+			    (entry.path().u8string().find("/xchange/kozyrev") != std::string::npos)
+		|| (entry.path().u8string().find("/xchange/#recycle") != std::string::npos) || (entry.path().u8string().find("@eaDir") != std::string::npos)  )
+	  	  	{ /* @eaDir - NAS "extended attributes directory" */ }
 	    else {
 	    	std::string target_f = std::regex_replace(entry.path().u8string(), std::regex("/xchange/"), "/xchange/#recycle/");
-
-		fs::path students_directory_as_root(std::regex_replace(entry.path().u8string(), std::regex("/xchange/00_Студенты"), "/"));
-		fs::path p(std::regex_replace(students_directory_as_root.u8string(), std::regex("/xchange"), "/"));
-
-		std::cout << "rootname:"  << p.root_name() << "\n";
-		std::cout << "rootdir:" << p.root_directory() << "\n";
-		std::cout << "rootpath:" << p.root_path() << "\n";	
-		std::cout << "parent:" << p.parent_path() << "\n";
-		std::cout << "lexically:" << p.lexically_relative(*p.begin()) << "\n";
 
 		fs::path directory_w_fn(target_f);
                 if (fs::is_directory(entry.path())) { 
@@ -42,13 +36,13 @@ void clr_xchange7days(const std::string& directory_to_clean) {
 			
 		}
 		else {
-	        	// std::cout << target_f << "\n";
+	        	std::cout << "target_f: " << target_f << "\n";
 
-			/* Copying file 
+			/* Copying file */
 			std::ifstream ifs(entry.path().u8string(), std::ios::in | std::ios::binary);
 			std::ofstream ofs(target_f, std::ios::out | std::ios::binary);
 			ofs << ifs.rdbuf();
-			/* Deleting old file 
+			/* Deleting old file */
 			remove(entry.path().u8string().c_str());
 			/**/
 		}
