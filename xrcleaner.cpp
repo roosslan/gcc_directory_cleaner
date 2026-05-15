@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <string>
 #include <regex>
+#include "sensitive_data.h" /* std::string consts my_directory, boss_directory and exclude_directory */
 
 namespace fs = std::filesystem;
 namespace ch = std::chrono;
@@ -22,9 +23,10 @@ void clr_xchange7days(const std::string& directory_to_clean) {
          lwt - fs::file_time_type::clock::now() + ch::system_clock::now());
 									            
          if (now - sctp > seven_days) {
-	    if ( (entry.path().u8string().find("/xchange/ibragimov") != std::string::npos) || 
-			    (entry.path().u8string().find("/xchange/00_students") != std::string::npos) ||
-			    (entry.path().u8string().find("/xchange/kozyrev") != std::string::npos)
+		 /* exclude directories */ 
+	    if ( (entry.path().u8string().find("/xchange/" + my_directory) != std::string::npos) || 
+			    (entry.path().u8string().find("/xchange/" + exclude_directory) != std::string::npos) ||
+			    (entry.path().u8string().find("/xchange/" + boss_directory) != std::string::npos)
 		|| (entry.path().u8string().find("/xchange/#recycle") != std::string::npos) || (entry.path().u8string().find("@eaDir") != std::string::npos)  )
 	  	  	{ /* @eaDir - NAS "extended attributes directory" */ }
 	    else {
