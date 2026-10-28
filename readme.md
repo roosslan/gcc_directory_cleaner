@@ -1,6 +1,51 @@
-Updated 14.5.26 \
-a simple recursive directory cleaner on Synology NAS (based on conditions) v2. \
-moved from msvs to g++ 
-* "gcc" official docker image from docker hub
-* g++ v15.2 
-* cron (apt install cron && service cron enable)
+Простая утилита для рекурсивной очистки общей директории `/xchange` на Synology NAS. Файлы, которые не изменялись дольше 7 дней, переносятся в корзину `/xchange/#recycle` с сохранением структуры директорий. После работы на почту отправляется отчёт.
+
+## Логика работы
+
+1. Служебные директории NAS `@eaDir` пропускаются на любом уровне.
+2. Если в корзине уже есть файл с таким же именем, к новому имени добавляется суффикс: `a.txt` -> `a (1).txt`.
+3. Старые директории, в которых после переноса не осталось ничего, кроме `@eaDir`, удаляются.
+
+Код возврата: `0` — без ошибок, `1` — были ошибки переноса или отправки почты, `2` — неверные аргументы.
+
+Корзина `#recycle` должна находиться на том же томе, что и очищаемая директория, иначе `rename` вернёт ошибку и файлы не будут перенесены.
+
+## Окружение
+
+* официальный docker-образ `gcc` с Docker Hub
+* g++ 15.2
+* cron: `apt install cron && service cron enable`
+* msmtp для отправки почты: `apt install msmtp`
+
+## Настройка
+
+Необходимо скопировать `sensitive_data.example.h` в `sensitive_data.h` и указать свои имена директорий и адрес получателя. Файл `sensitive_data.h` в репозиторий не добавляется.
+
+Параметры SMTP задаются в `~/.msmtprc` пользователя, от имени которого запускается cron, например:
+
+```
+defaults
+auth           on
+tls            on
+tls_trust_file /etc/ssl/certs/ca-certificates.crt
+
+account        default
+host           smtp.example.com
+port           587
+from           nas@example.com
+user           nas@example.com
+password       secret
+```
+
+Права на файл: `chmod 600 ~/.msmtprc`.
+
+## Запуск
+
+Для проверки без изменений на диске необходимо запустить программу с ключом `--dry-run`. Список того, что будет перенесено и удалено, выводится в stdout.
+
+Пример crontab (ежедневно в 03:00 и 03:30, вывод дописывается в лог):
+
+```
+0 3 * * *  /opt/cleaner/xrcleaner.elf   >> /var/log/xrcleaner.log 2>&1
+30 3 * * * /opt/cleaner/studcleaner.elf >> /var/log/studcleaner.log 2>&1
+```
